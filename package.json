@@ -1,0 +1,27 @@
+{
+  "name": "matrix-api-gateway",
+  "version": "1.0.0",
+  "description": "matrix-api-gateway",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "author": "Richard Leon Ingaruca <jrichardsz.java@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "connect-livereload": "^0.6.0",
+    "cookie-parser": "^1.4.3",
+    "cookie-session": "^2.0.0-beta.3",
+    "cors": "^2.8.4",
+    "deasync": "^0.1.13",
+    "express": "^4.16.3",
+    "express-session": "^1.15.6",
+    "http-proxy": "^1.17.0",
+    "log4js": "5.0.0",
+    "nodemon": "1.19.1",
+    "oauth": "^0.9.12",
+    "request": "^2.87.0",
+    "uuid": "^3.2.1"
+  }
+}
