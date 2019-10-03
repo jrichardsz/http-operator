@@ -1,6 +1,6 @@
-# Matrix Gateway Api
+# Matrix Http Gateway
 
-Matrix Gateway Api is a gateway service that provides dynamic routing and more. With Matrix, your clients and apis will live in a virtual and peaceful world.
+Matrix Http Gateway is a simple gateway service that provides dynamic routing and more. With Matrix, your clients and apis will live in a virtual and peaceful world.
 
 ![logo](logo.png)
 
@@ -80,6 +80,7 @@ You can consume it using matrix with:
 - add midlewares for basic auth, oauth2, etc
 - test
 - refactor
+- add target types : web & api
 
 
 # Versioning
