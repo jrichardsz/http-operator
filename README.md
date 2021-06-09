@@ -31,8 +31,15 @@ If you have an api called : http://acme-api.com and you want to use it as /marve
 you just need:
 
 ```sh
-export proxy_data_01_context=localhost:8080
+export proxy_data_01_source=localhost:8080
 export proxy_data_01_target=http:/localhost:8081
+```
+
+or with several nodes
+
+```sh
+export proxy_data_01_source=localhost:8080
+export proxy_data_01_target="http://localhost:8081 , http://localhost:8082"
 ```
 
 # Development Mode

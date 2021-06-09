@@ -1,3 +1,4 @@
+var roundround = require('roundround');
 var httpProxy = require('http-proxy');
 var proxy = httpProxy.createProxyServer({
   changeOrigin: true
@@ -5,32 +6,27 @@ var proxy = httpProxy.createProxyServer({
 
 function HttpProxyHelper() {
 
-  this.performSimpleProxy = function(req, res) {
+  this.distributeStrategyDefault = 'round-robin';
+  this.distributeStrategyMap = {};
+
+  this.performSimpleProxy = (req, res)=> {
 
     var url = req.url;
-    logger.debug(req.headers);
-    var sourceIdentifier;
-    sourceIdentifier = getApiIndentifier(url);
-
+    logger.debug(req.url+ " headers: " +JSON.stringify(req.headers));
+    var sourceIdentifier = sourceIdentifier = req.headers['host']
     if (!sourceIdentifier) {
-      logger.debug("We can't extract a valid source identifier from requested url:"+url);
-      sourceIdentifier = req.headers['host']
-      if (!sourceIdentifier) {
-        logger.debug("We can't extract a valid source identifier from requested host:"+req.headers['host']);
-        var status = {
-          "status": 500,
-          "message": "We can't extract a valid source identifier using context or host header"
-        };
-        res.json(status);
-        return;
-      }
+      logger.debug("We can't extract a valid source identifier from requested host:"+req.headers['host']);
+      var status = {
+        "status": 500,
+        "message": "We can't extract a valid source identifier using context or host header"
+      };
+      res.json(status);
+      return;
     }
 
     logger.debug("Source identifier:"+sourceIdentifier);
 
     var registeredApiData = proxyRoutes[sourceIdentifier];
-    // var context = proxyRoutes[sourceHost].context;
-    // logger.debug("Target " +targetHost+" was found for this source:"+sourceHost);
 
     if (typeof(registeredApiData) === "undefined") {
       logger.debug("Source identifier is not registered in Gateway: "+sourceIdentifier);
@@ -42,27 +38,34 @@ function HttpProxyHelper() {
       return;
     }
 
-    //replace api identifier from request object in order to
-    //perform a success proxy invocation
-    req.url = req.url.replace(sourceIdentifier, "");
-    logger.debug("New target url:"+req.url);
-    logger.debug("New target host:"+registeredApiData.target);
+    if (typeof registeredApiData.target === 'undefined' || registeredApiData.target.length==0) {
+      logger.debug("Source identifier has a wrong or empty target");
+      var status = {
+        "status": 500,
+        "message": "Source identifier has a wrong or empty target: "+sourceIdentifier
+      };
+      res.json(status);
+      return;
+    }
 
+    //@TODO: ensure target host syntax is well because it throws low level http errors
+    /*
+    http-operator/node_modules/http-proxy/lib/http-proxy/index.js:120throw err;
+    Error: connect ECONNREFUSED 127.0.0.1:80
+        at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1107:14)
+    */
+
+    //get the target host using distribute strategy
+    if(typeof this.distributeStrategyMap[sourceIdentifier] === 'undefined'){
+      this.distributeStrategyMap[sourceIdentifier] = roundround(registeredApiData.target)
+    }
+
+    var selectedTarget = this.distributeStrategyMap[sourceIdentifier]();
+    logger.debug(`New target url: ${selectedTarget}${req.url}`);
     proxy.web(req, res, {
-      target: registeredApiData.target,
-      changeOrigin: true
+      target: selectedTarget
     });
 
-  }
-
-
-  function getApiIndentifier(url){
-    if(url.startsWith("/")){
-      var indexOfSecondSlash = url.indexOf("/",2);
-      if(indexOfSecondSlash>0){
-        return url.substring(0,url.indexOf("/",2));
-      }
-    }
   }
 
 }
