@@ -31,8 +31,8 @@ If you have an api called : http://acme-api.com and you want to use it as /marve
 you just need:
 
 ```sh
-export proxy_data_01_context=/marvel-api
-export proxy_data_01_target=http://acme-api.com
+export proxy_data_01_context=localhost:8080
+export proxy_data_01_target=http:/localhost:8081
 ```
 
 # Development Mode
@@ -61,6 +61,11 @@ export PORT=8080
 ```
 npm install
 npm run start
+```
+
+Add this for debug
+```
+export log_level=debug
 ```
 
 # Execute Matrix

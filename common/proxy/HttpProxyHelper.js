@@ -8,29 +8,35 @@ function HttpProxyHelper() {
   this.performSimpleProxy = function(req, res) {
 
     var url = req.url;
-    var apiIdentifier = getApiIndentifier(url);
+    logger.debug(req.headers);
+    var sourceIdentifier;
+    sourceIdentifier = getApiIndentifier(url);
 
-    logger.debug("Api identifier:"+apiIdentifier);
-
-    if (!apiIdentifier) {
-      logger.debug("We can't extract a valid api identifier from requested url:"+url);
-      var status = {
-        "status": 500,
-        "message": "We can't extract a valid api identifier from requested url:"+url
-      };
-      res.json(status);
-      return;
+    if (!sourceIdentifier) {
+      logger.debug("We can't extract a valid source identifier from requested url:"+url);
+      sourceIdentifier = req.headers['host']
+      if (!sourceIdentifier) {
+        logger.debug("We can't extract a valid source identifier from requested host:"+req.headers['host']);
+        var status = {
+          "status": 500,
+          "message": "We can't extract a valid source identifier using context or host header"
+        };
+        res.json(status);
+        return;
+      }
     }
 
-    var registeredApiData = proxyRoutes[apiIdentifier];
+    logger.debug("Source identifier:"+sourceIdentifier);
+
+    var registeredApiData = proxyRoutes[sourceIdentifier];
     // var context = proxyRoutes[sourceHost].context;
     // logger.debug("Target " +targetHost+" was found for this source:"+sourceHost);
 
     if (typeof(registeredApiData) === "undefined") {
-      logger.debug("Api identifier is not registered in Gateway: "+apiIdentifier);
+      logger.debug("Source identifier is not registered in Gateway: "+sourceIdentifier);
       var status = {
         "status": 500,
-        "message": "Api identifier is not registered in Gateway: "+apiIdentifier
+        "message": "Source identifier is not registered in Gateway: "+sourceIdentifier
       };
       res.json(status);
       return;
@@ -38,12 +44,13 @@ function HttpProxyHelper() {
 
     //replace api identifier from request object in order to
     //perform a success proxy invocation
-    req.url = req.url.replace(apiIdentifier, "");
+    req.url = req.url.replace(sourceIdentifier, "");
     logger.debug("New target url:"+req.url);
     logger.debug("New target host:"+registeredApiData.target);
 
     proxy.web(req, res, {
-      target: registeredApiData.target
+      target: registeredApiData.target,
+      changeOrigin: true
     });
 
   }
